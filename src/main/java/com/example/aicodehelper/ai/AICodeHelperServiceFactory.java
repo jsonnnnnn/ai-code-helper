@@ -47,7 +47,7 @@ public class AICodeHelperServiceFactory {  //工厂模式加bean
                  .chatMemoryProvider(memoryId ->
                          MessageWindowChatMemory.withMaxMessages(10)) // 每个会话独立存储
                  .contentRetriever(contentRetriever)    //添加RAG内容检索
-                 .toolProvider(mcpToolProvider)         //添加MCP工具
+                 .toolProvider(mcpToolProvider)         //添加MCP工具，通过mcp调用bigmodel的联网搜索服务，来实现联网搜索
                  .streamingChatModel(qwenStreamingChatModel)//流式输出
                  .build();
          return  aiCodeHelperService;
