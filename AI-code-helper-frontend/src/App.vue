@@ -1,10 +1,22 @@
 <template>
   <div class="chat-app">
+    <!-- Fullscreen background video -->
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4" type="video/mp4" />
+    </video>
+
+    <!-- Hover target for the top bar -->
+    <div class="top-hover-zone" aria-hidden="true"></div>
+
     <!-- Header -->
     <header class="chat-header">
       <div class="header-left">
         <div class="avatar-wrapper">
-          <span class="avatar-icon">🤖</span>
+          <!-- AI spark icon -->
+          <svg class="avatar-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l2.09 6.41L20.5 10l-6.41 2.09L12 18.5l-2.09-6.41L3.5 10l6.41-2.09z"/>
+            <path d="M5 3l.9 2.6L8.5 6.5l-2.6.9L5 10l-.9-2.6L1.5 6.5l2.6-.9z" opacity=".5"/>
+          </svg>
           <span class="status-dot"></span>
         </div>
         <div class="header-info">
@@ -18,7 +30,7 @@
           <span class="session-id">{{ memoryId }}</span>
         </div>
         <button class="new-chat-btn" @click="newChat" title="新建会话">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M12 5v14M5 12h14"/>
           </svg>
           新建会话
@@ -30,7 +42,6 @@
     <main class="chat-messages" ref="messagesContainer">
       <!-- Welcome message -->
       <div v-if="messages.length === 0" class="welcome-screen">
-        <div class="welcome-icon">🤖</div>
         <h2 class="welcome-title">你好！我是 AI 编程小助手</h2>
         <p class="welcome-desc">我可以帮助你解答编程学习和求职面试相关的问题，随时向我提问吧！</p>
         <div class="quick-prompts">
@@ -53,7 +64,9 @@
         >
           <!-- AI Avatar -->
           <div v-if="msg.role === 'ai'" class="msg-avatar msg-avatar--ai">
-            <span>🤖</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l2.09 6.41L20.5 10l-6.41 2.09L12 18.5l-2.09-6.41L3.5 10l6.41-2.09z"/>
+            </svg>
           </div>
 
           <div class="msg-bubble-wrap">
@@ -70,13 +83,19 @@
 
           <!-- User Avatar -->
           <div v-if="msg.role === 'user'" class="msg-avatar msg-avatar--user">
-            <span>👤</span>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
           </div>
         </div>
 
         <!-- Typing indicator (before stream starts) -->
         <div v-if="isWaiting" class="message-row message-row--ai">
-          <div class="msg-avatar msg-avatar--ai"><span>🤖</span></div>
+          <div class="msg-avatar msg-avatar--ai">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l2.09 6.41L20.5 10l-6.41 2.09L12 18.5l-2.09-6.41L3.5 10l6.41-2.09z"/>
+            </svg>
+          </div>
           <div class="msg-bubble-wrap">
             <div class="msg-bubble msg-bubble--ai">
               <div class="typing-indicator">
@@ -107,8 +126,9 @@
           :disabled="!inputText.trim() || isStreaming"
           @click="sendMessage"
         >
-          <svg v-if="!isStreaming" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          <svg v-if="!isStreaming" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
           <svg v-else viewBox="0 0 24 24" fill="currentColor" class="stop-icon">
             <rect x="6" y="6" width="12" height="12" rx="2"/>
@@ -330,13 +350,24 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ===== Background Video ===== */
+.bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
 /* ===== Layout ===== */
 .chat-app {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--bg-primary);
+  background: transparent;
   overflow: hidden;
+  font-family: 'General Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 /* ===== Header ===== */
@@ -344,65 +375,94 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
-  backdrop-filter: blur(12px);
-  z-index: 10;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.top-hover-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 19;
+  background: transparent;
+}
+
+.top-hover-zone:hover + .chat-header,
+.chat-header:hover {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .avatar-wrapper {
   position: relative;
-  width: 44px;
-  height: 44px;
-  background: var(--accent-light);
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--accent);
+  border: 1px solid var(--border-bright);
 }
 
-.avatar-icon {
-  font-size: 22px;
-  line-height: 1;
+.avatar-svg {
+  width: 22px;
+  height: 22px;
+  color: #ffffff;
 }
 
 .status-dot {
   position: absolute;
-  bottom: 1px;
-  right: 1px;
+  bottom: -3px;
+  right: -3px;
   width: 10px;
   height: 10px;
-  background: #22c55e;
+  background: #4ade80;
   border-radius: 50%;
-  border: 2px solid var(--bg-secondary);
+  border: 2px solid #000;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.6);
 }
 
 .app-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.3px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.2px;
 }
 
 .app-subtitle {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
+  letter-spacing: 0.2px;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .session-badge {
@@ -416,52 +476,60 @@ onBeforeUnmount(() => {
   font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  font-weight: 500;
 }
 
 .session-id {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent-hover);
+  color: rgba(255, 255, 255, 0.85);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
 
 .new-chat-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--accent-light);
-  color: var(--accent-hover);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  gap: 7px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-bright);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.2s ease;
+  letter-spacing: 0.2px;
 }
 
 .new-chat-btn svg {
   width: 14px;
   height: 14px;
+  flex-shrink: 0;
 }
 
 .new-chat-btn:hover {
-  background: rgba(99, 102, 241, 0.25);
-  border-color: var(--accent);
-  color: white;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
 }
 
 /* ===== Messages ===== */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 16px;
+  padding: 28px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   scroll-behavior: smooth;
+  position: relative;
+  z-index: 2;
+  background: transparent;
 }
 
 /* ===== Welcome ===== */
@@ -473,27 +541,22 @@ onBeforeUnmount(() => {
   flex: 1;
   padding: 40px 20px;
   text-align: center;
-  gap: 12px;
-  animation: fadeIn 0.5s ease;
-}
-
-.welcome-icon {
-  font-size: 64px;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+  gap: 14px;
+  animation: fadeIn 0.6s ease;
 }
 
 .welcome-title {
   font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.2px;
 }
 
 .welcome-desc {
   font-size: 14px;
   color: var(--text-secondary);
-  max-width: 360px;
-  line-height: 1.6;
+  max-width: 380px;
+  line-height: 1.7;
 }
 
 .quick-prompts {
@@ -501,24 +564,29 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .quick-btn {
-  padding: 8px 16px;
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 20px;
+  padding: 9px 18px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
   font-size: 13px;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .quick-btn:hover {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent-hover);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
 }
 
 /* ===== Message Row ===== */
@@ -540,25 +608,32 @@ onBeforeUnmount(() => {
 
 /* ===== Avatar ===== */
 .msg-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   flex-shrink: 0;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.msg-avatar svg {
+  width: 17px;
+  height: 17px;
 }
 
 .msg-avatar--ai {
-  background: var(--accent-light);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-bright);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .msg-avatar--user {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* ===== Bubble ===== */
@@ -579,59 +654,65 @@ onBeforeUnmount(() => {
 .msg-bubble {
   padding: 12px 16px;
   border-radius: var(--radius-bubble);
-  line-height: 1.65;
+  line-height: 1.7;
   font-size: 14px;
   word-break: break-word;
   position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .msg-bubble--user {
-  background: var(--user-bubble);
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom-right-radius: 5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .msg-bubble--ai {
-  background: var(--ai-bubble);
-  color: var(--text-primary);
-  border-bottom-left-radius: 4px;
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-left-radius: 5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .msg-time {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 5px;
   padding: 0 4px;
+  letter-spacing: 0.3px;
 }
 
 /* ===== Message Content Styles ===== */
 .msg-content :deep(pre.code-block) {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px 14px;
   overflow-x: auto;
   margin: 8px 0;
   font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .msg-content :deep(code.inline-code) {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
   padding: 1px 6px;
   font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
   font-size: 12.5px;
-  color: #a5f3fc;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .msg-bubble--user .msg-content :deep(code.inline-code) {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #e0f2fe;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* ===== Typing Cursor ===== */
@@ -639,7 +720,7 @@ onBeforeUnmount(() => {
   display: inline-block;
   width: 2px;
   height: 1em;
-  background: var(--accent-hover);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 1px;
   margin-left: 2px;
   vertical-align: text-bottom;
@@ -655,9 +736,9 @@ onBeforeUnmount(() => {
 }
 
 .typing-indicator span {
-  width: 7px;
-  height: 7px;
-  background: var(--text-muted);
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   animation: bounce 1.2s ease infinite;
 }
@@ -667,28 +748,33 @@ onBeforeUnmount(() => {
 
 /* ===== Input Area ===== */
 .chat-input-area {
-  padding: 12px 16px 16px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
+  padding: 14px 20px 18px;
+  background: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  position: relative;
+  z-index: 2;
 }
 
 .input-wrapper {
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  padding: 8px 8px 8px 16px;
-  transition: border-color 0.2s ease;
+  padding: 10px 10px 10px 18px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
   max-width: 900px;
   margin: 0 auto;
+  backdrop-filter: blur(8px);
 }
 
 .input-wrapper:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04), 0 0 20px rgba(255, 255, 255, 0.04);
 }
 
 .chat-input {
@@ -696,14 +782,15 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--text-primary);
+  color: #ffffff;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
   resize: none;
   min-height: 28px;
   max-height: 160px;
   font-family: inherit;
   padding: 4px 0;
+  letter-spacing: 0.1px;
 }
 
 .chat-input::placeholder {
@@ -711,7 +798,7 @@ onBeforeUnmount(() => {
 }
 
 .chat-input:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -719,8 +806,8 @@ onBeforeUnmount(() => {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  border: none;
-  background: var(--border);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   cursor: not-allowed;
   display: flex;
@@ -731,19 +818,23 @@ onBeforeUnmount(() => {
 }
 
 .send-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
 .send-btn--active {
-  background: var(--accent);
-  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-bright);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
 }
 
 .send-btn--active:hover {
-  background: var(--accent-hover);
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.08);
+  transform: scale(1.04);
 }
 
 .stop-icon {
@@ -754,15 +845,16 @@ onBeforeUnmount(() => {
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);
-  margin-top: 8px;
+  margin-top: 9px;
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
+  letter-spacing: 0.2px;
 }
 
 /* ===== Animations ===== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -777,18 +869,18 @@ onBeforeUnmount(() => {
 
 @keyframes bounce {
   0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-6px); }
+  30% { transform: translateY(-5px); }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.55; }
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 640px) {
   .chat-header {
-    padding: 10px 14px;
+    padding: 10px 16px;
   }
 
   .session-badge {
@@ -800,11 +892,11 @@ onBeforeUnmount(() => {
   }
 
   .chat-messages {
-    padding: 16px 10px;
+    padding: 16px 12px;
   }
 
   .msg-bubble-wrap {
-    max-width: 85%;
+    max-width: 86%;
   }
 }
 </style>
