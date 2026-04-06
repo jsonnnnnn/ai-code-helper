@@ -14,7 +14,7 @@ langchain4j:
         model-name: qwen-plus
         api-key: sk-97a17038ee844b9b92e180b0aa70f6e6
       embedding-model:
-        model-name: text-embedding-v4
+        model-name: text-embedding-v3
         api-key: sk-97a17038ee844b9b92e180b0aa70f6e6
       streaming-chat-model:
         model-name: qwen-plus
@@ -22,5 +22,7 @@ langchain4j:
 
 bigmodel:
   api-key:  5b56e97f971e48febccf854970420508.piTrjQEz8AKJyOgy
+
+
 
 

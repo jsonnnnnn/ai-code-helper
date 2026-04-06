@@ -25,7 +25,34 @@
         </div>
       </div>
       <div class="header-right">
-        <div class="session-badge">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+          <button
+            class="mode-btn"
+            :class="{ 'mode-btn--active': mode === 'memory' }"
+            @click="switchMode('memory')"
+            title="记忆模式：多轮对话，带会话记忆"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            记忆模式
+          </button>
+          <button
+            class="mode-btn"
+            :class="{ 'mode-btn--active': mode === 'route' }"
+            @click="switchMode('route')"
+            title="路由模式：自动识别内容类型并分发处理"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+            </svg>
+            路由模式
+          </button>
+        </div>
+
+        <div class="session-badge" v-if="mode === 'memory'">
           <span class="session-label">会话 ID</span>
           <span class="session-id">{{ memoryId }}</span>
         </div>
@@ -42,11 +69,24 @@
     <main class="chat-messages" ref="messagesContainer">
       <!-- Welcome message -->
       <div v-if="messages.length === 0" class="welcome-screen">
-        <h2 class="welcome-title">你好！我是 AI 编程小助手</h2>
-        <p class="welcome-desc">我可以帮助你解答编程学习和求职面试相关的问题，随时向我提问吧！</p>
+        <div class="welcome-mode-badge" :class="mode === 'memory' ? 'badge--memory' : 'badge--route'">
+          <svg v-if="mode === 'memory'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+          </svg>
+          {{ mode === 'memory' ? '记忆模式' : '路由模式' }}
+        </div>
+        <h2 class="welcome-title">{{ mode === 'memory' ? '你好！我是 AI 编程小助手' : '内容路由处理器' }}</h2>
+        <p class="welcome-desc">{{ mode === 'memory'
+          ? '多轮对话模式，我会记住我们的聊天记录。随时向我提问编程学习或面试相关的问题！'
+          : '路由模式会自动识别你输入的内容类型（文本、代码、链接等），并交由对应的处理器处理。'
+        }}</p>
         <div class="quick-prompts">
           <button
-            v-for="prompt in quickPrompts"
+            v-for="prompt in currentQuickPrompts"
             :key="prompt"
             class="quick-btn"
             @click="sendQuickPrompt(prompt)"
@@ -114,7 +154,7 @@
           ref="inputRef"
           v-model="inputText"
           class="chat-input"
-          placeholder="输入你的问题，按 Enter 发送，Shift+Enter 换行..."
+          :placeholder="mode === 'memory' ? '输入你的问题，按 Enter 发送，Shift+Enter 换行...' : '输入任意内容，AI 将自动识别类型并处理，按 Enter 发送...'"
           :disabled="isStreaming"
           @keydown="handleKeydown"
           rows="1"
@@ -141,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 // --- State ---
 const memoryId = ref(generateMemoryId())
@@ -151,15 +191,27 @@ const isStreaming = ref(false)
 const isWaiting = ref(false)
 const messagesContainer = ref(null)
 const inputRef = ref(null)
+const mode = ref('memory') // 'memory' | 'route'
 
 let currentEventSource = null
 
-const quickPrompts = [
+const memoryQuickPrompts = [
   '如何学习 Vue3？',
   '解释一下 Promise 和 async/await',
   '常见的前端面试题有哪些？',
   'Java 线程池的工作原理？',
 ]
+
+const routeQuickPrompts = [
+  '帮我总结一下什么是微服务架构',
+  'Spring Boot 自动装配原理是什么？',
+  '解释一下 TCP 三次握手的过程',
+  '什么是 RESTful API 设计规范？',
+]
+
+const currentQuickPrompts = computed(() =>
+  mode.value === 'memory' ? memoryQuickPrompts : routeQuickPrompts
+)
 
 // --- Helpers ---
 function generateMemoryId() {
@@ -222,6 +274,18 @@ function resetInputHeight() {
 }
 
 // --- Actions ---
+function switchMode(newMode) {
+  if (newMode === mode.value) return
+  if (isStreaming.value) stopStream()
+  mode.value = newMode
+  messages.value = []
+  inputText.value = ''
+  resetInputHeight()
+  if (newMode === 'memory') {
+    memoryId.value = generateMemoryId()
+  }
+}
+
 function newChat() {
   if (isStreaming.value) {
     stopStream()
@@ -279,7 +343,9 @@ function sendMessage() {
   isWaiting.value = true
   isStreaming.value = true
 
-  const url = `/api/ai/chat?memoryId=${encodeURIComponent(memoryId.value)}&message=${encodeURIComponent(text)}`
+  const url = mode.value === 'memory'
+    ? `/api/ai/chat?memoryId=${encodeURIComponent(memoryId.value)}&message=${encodeURIComponent(text)}`
+    : `/api/ai/route?content=${encodeURIComponent(text)}`
 
   const eventSource = new EventSource(url)
   currentEventSource = eventSource
@@ -516,6 +582,82 @@ onBeforeUnmount(() => {
   border-color: rgba(255, 255, 255, 0.4);
   color: #ffffff;
   box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
+}
+
+/* ===== Mode Toggle ===== */
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.mode-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.mode-btn--active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.mode-btn:not(.mode-btn--active):hover {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ===== Welcome Mode Badge ===== */
+.welcome-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.welcome-mode-badge svg {
+  width: 13px;
+  height: 13px;
+}
+
+.badge--memory {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: rgba(74, 222, 128, 0.9);
+}
+
+.badge--route {
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: rgba(96, 165, 250, 0.9);
 }
 
 /* ===== Messages ===== */
@@ -889,6 +1031,13 @@ onBeforeUnmount(() => {
 
   .app-subtitle {
     display: none;
+  }
+
+  .mode-btn span,
+  .mode-btn {
+    font-size: 11px;
+    padding: 5px 9px;
+    gap: 4px;
   }
 
   .chat-messages {

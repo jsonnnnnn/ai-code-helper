@@ -26,7 +26,7 @@ public class AICodeHelperServiceFactory {  //工厂模式加bean
     private ChatModel  myQwenChatModel;  //从QwenChatModelConfig放入容器，此时再注入  （自定义模型支持监听器
 
     @Resource
-    private ContentRetriever contentRetriever;//从RagConfig放入容器，此时再注入
+    private ContentRetriever contentRetriever;//从RagConfig放入容器，此时再注入   embedding模型欠费了，暂时不用了
 
     @Resource
     private McpToolProvider mcpToolProvider;//从McpConfig放入容器，此时再注入
@@ -46,7 +46,7 @@ public class AICodeHelperServiceFactory {  //工厂模式加bean
                  .chatMemory(chatMemory)                //添加会话记忆
                  .chatMemoryProvider(memoryId ->
                          MessageWindowChatMemory.withMaxMessages(10)) // 每个会话独立存储
-                 .contentRetriever(contentRetriever)    //添加RAG内容检索
+                 .contentRetriever(contentRetriever)    //添加RAG内容检索  embedding模型欠费了，暂时先不用
                  .toolProvider(mcpToolProvider)         //添加MCP工具，通过mcp调用bigmodel的联网搜索服务，来实现联网搜索
                  .streamingChatModel(qwenStreamingChatModel)//流式输出
                  .build();
