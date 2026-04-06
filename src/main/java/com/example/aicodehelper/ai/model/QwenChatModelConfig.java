@@ -32,6 +32,7 @@ public class QwenChatModelConfig {
                 .apiKey(apiKey)
                 .modelName(modelName)
                 .listeners(List.of(chatModelListener))//加入监听器，来支持可观测性
+                .temperature(0.85f)
                 .build();
     }
 }

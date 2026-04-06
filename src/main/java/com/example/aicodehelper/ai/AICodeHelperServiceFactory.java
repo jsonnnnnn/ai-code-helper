@@ -41,8 +41,8 @@ public class AICodeHelperServiceFactory {  //工厂模式加bean
          ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
          //创建服务
          AICodeHelperService aiCodeHelperService = AiServices.builder(AICodeHelperService.class)
-//                 .chatModel(qwenChatModel)              //默认模型
-                 .chatModel(myQwenChatModel)              //自定义模型（支持监听
+                 .chatModel(qwenChatModel)              //默认模型
+//                 .chatModel(myQwenChatModel)              //自定义模型(支持监听、温度控制)
                  .chatMemory(chatMemory)                //添加会话记忆
                  .chatMemoryProvider(memoryId ->
                          MessageWindowChatMemory.withMaxMessages(10)) // 每个会话独立存储

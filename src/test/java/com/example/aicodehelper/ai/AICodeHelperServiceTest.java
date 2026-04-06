@@ -38,6 +38,7 @@ class AICodeHelperServiceTest {
         Result<String> result= aiCodeHelperService.chatWithRag("新手怎么规划学习路线");
         System.out.println(result.sources());//这个是Rag检索到的内容（设置的至多5条）
         System.out.println(result.content());//这个是最终ai返回的结果
+        System.out.println(result.tokenUsage());
 
     }
 
@@ -57,6 +58,18 @@ class AICodeHelperServiceTest {
     void chatWithListener() {
         String result = aiCodeHelperService.chat("什么是程序员鱼皮");
         System.out.println(result);
+    }
+
+    @Test
+    void chatWithDiffLevel() {
+        //初学者
+        Result<String> result = aiCodeHelperService.chatWithDiffLevel("System.out.println();","java", "beginner");
+        System.out.println(result.content());
+        System.out.println(".........................................................");
+        //大佬
+         result = aiCodeHelperService.chatWithDiffLevel("System.out.println();","java", "advanced");
+        System.out.println(result.content());
+
     }
 
 
