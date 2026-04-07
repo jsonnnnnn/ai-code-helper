@@ -28,8 +28,8 @@ public class RoutingChainExampleTest {
             System.out.println("\n--- 处理内容 " + (i + 1) + " ---");
             System.out.println("原始内容：" + content.substring(0, Math.min(50, content.length())) + "...");
 
-            String result = contentRoutingChain.processContent(content);
-            System.out.println("处理结果：" + result);
+//            String result = contentRoutingChain.processContent(content);
+//            System.out.println("处理结果：" + result);
         }
     }
 }

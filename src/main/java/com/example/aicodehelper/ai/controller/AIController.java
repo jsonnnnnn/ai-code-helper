@@ -2,9 +2,12 @@ package com.example.aicodehelper.ai.controller;
 
 
 import com.example.aicodehelper.ai.AICodeHelperService;
+import com.example.aicodehelper.ai.memory.LongTermMemoryService;
 import com.example.aicodehelper.ai.routeChain.ContentRoutingChain;
 import jakarta.annotation.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +25,21 @@ public class AIController {
     @Resource
     private ContentRoutingChain contentRoutingChain;
 
+    @Resource
+    private LongTermMemoryService longTermMemoryService;
+
     @GetMapping("/chat")
     public Flux<ServerSentEvent<String>> chat(int memoryId, String message) {
         return aiCodeHelperService.chatStream(memoryId, message)
                 .map(chunk -> ServerSentEvent.<String>builder()
                         .data(chunk)
                         .build());
+    }
+
+    @DeleteMapping("/memory/long-term")
+    public ResponseEntity<String> clearLongTermMemory() {
+        longTermMemoryService.clearLongTermMemory();
+        return ResponseEntity.ok("长期记忆已清除");
     }
 
     @GetMapping(value = "/route", produces = "text/event-stream")

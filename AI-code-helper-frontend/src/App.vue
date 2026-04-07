@@ -56,6 +56,26 @@
           <span class="session-label">会话 ID</span>
           <span class="session-id">{{ mode === 'memory' ? memoryId : routeConversationId }}</span>
         </div>
+        <button
+          v-if="mode === 'route'"
+          class="clear-memory-btn"
+          :class="{ 'clear-memory-btn--loading': isClearingMemory }"
+          :disabled="isClearingMemory || isStreaming"
+          @click="clearLongTermMemory"
+          title="清除所有长期记忆（不可恢复）"
+        >
+          <svg v-if="!isClearingMemory" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="spin-icon">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+          {{ isClearingMemory ? '清除中...' : '清除记忆' }}
+        </button>
+
         <button class="new-chat-btn" @click="newChat" title="新建会话">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M12 5v14M5 12h14"/>
@@ -193,6 +213,7 @@ const isWaiting = ref(false)
 const messagesContainer = ref(null)
 const inputRef = ref(null)
 const mode = ref('memory') // 'memory' | 'route'
+const isClearingMemory = ref(false)
 
 let currentEventSource = null
 
@@ -305,6 +326,41 @@ function newChat() {
   messages.value = []
   inputText.value = ''
   resetInputHeight()
+}
+
+async function clearLongTermMemory() {
+  if (isClearingMemory.value) return
+  isClearingMemory.value = true
+  try {
+    const res = await fetch('/api/ai/memory/long-term', { method: 'DELETE' })
+    if (res.ok) {
+      messages.value.push({
+        role: 'ai',
+        content: '✅ 长期记忆已清除，后续对话将从零开始积累记忆。',
+        time: getNowTime(),
+        streaming: false,
+      })
+      scrollToBottom()
+    } else {
+      messages.value.push({
+        role: 'ai',
+        content: '❌ 清除长期记忆失败，请检查后端服务是否正常运行。',
+        time: getNowTime(),
+        streaming: false,
+      })
+      scrollToBottom()
+    }
+  } catch {
+    messages.value.push({
+      role: 'ai',
+      content: '❌ 清除长期记忆失败，网络请求异常。',
+      time: getNowTime(),
+      streaming: false,
+    })
+    scrollToBottom()
+  } finally {
+    isClearingMemory.value = false
+  }
 }
 
 function sendQuickPrompt(prompt) {
@@ -563,6 +619,46 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.85);
   font-variant-numeric: tabular-nums;
   letter-spacing: 1.5px;
+}
+
+.clear-memory-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(252, 165, 165, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.clear-memory-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.clear-memory-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.12);
+}
+
+.clear-memory-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clear-memory-btn--loading {
+  opacity: 0.7;
 }
 
 .new-chat-btn {
@@ -1028,6 +1124,15 @@ onBeforeUnmount(() => {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spin 0.9s linear infinite;
 }
 
 /* ===== Responsive ===== */
