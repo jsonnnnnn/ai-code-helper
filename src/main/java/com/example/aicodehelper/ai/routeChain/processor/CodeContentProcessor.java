@@ -2,7 +2,7 @@ package com.example.aicodehelper.ai.routeChain.processor;
 
 import com.example.aicodehelper.ai.context.ContentProcessingContext;
 import com.example.aicodehelper.ai.memory.RouteMemoryManager;
-import com.example.aicodehelper.ai.routeChain.service.TextProcessorService;
+import com.example.aicodehelper.ai.routeChain.service.CodeProcessorService;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 @Component
-public class TextContentProcessor implements ContentProcessor {
+public class CodeContentProcessor implements ContentProcessor {
 
     @Resource
     private ChatModel myQwenChatModel;
@@ -25,20 +25,20 @@ public class TextContentProcessor implements ContentProcessor {
 
     @Override
     public String getProcessorName() {
-        return "文本处理器";
+        return "代码处理器";
     }
 
     @Override
     public ContentProcessingContext process(ContentProcessingContext context) throws Exception {
-        TextProcessorService processor = AiServices.create(TextProcessorService.class, myQwenChatModel);
+        CodeProcessorService processor = AiServices.create(CodeProcessorService.class, myQwenChatModel);
 
         String content = context.getOriginalContent();
-        String processedText = processor.processText(content);
-        System.out.println("文本处理结果：" + processedText);
-        context.addResult("processed_text", processedText);
-        context.setFinalOutput("文本处理完成：" + processedText);
+        String processedCode = processor.processCode(content);
+        System.out.println("代码处理结果：" + processedCode);
+        context.addResult("processed_code", processedCode);
+        context.setFinalOutput("代码处理完成：" + processedCode);
 
-        System.out.println("使用文本处理器处理内容");
+        System.out.println("使用代码处理器处理内容");
         return context;
     }
 
@@ -46,13 +46,13 @@ public class TextContentProcessor implements ContentProcessor {
     public Flux<String> processStream(ContentProcessingContext context) {
         ChatMemory memory = routeMemoryManager.getOrCreate(context.getConversationId());
 
-        TextProcessorService processor = AiServices.builder(TextProcessorService.class)
+        CodeProcessorService processor = AiServices.builder(CodeProcessorService.class)
                 .chatModel(myQwenChatModel)
                 .streamingChatModel(qwenStreamingChatModel)
                 .chatMemory(memory)
                 .build();
 
-        System.out.println("使用文本处理器流式处理内容，conversationId=" + context.getConversationId());
-        return processor.processTextStream(context.getOriginalContent());
+        System.out.println("使用代码处理器流式处理内容，conversationId=" + context.getConversationId());
+        return processor.processCodeStream(context.getOriginalContent());
     }
 }

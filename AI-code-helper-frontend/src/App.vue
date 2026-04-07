@@ -52,9 +52,9 @@
           </button>
         </div>
 
-        <div class="session-badge" v-if="mode === 'memory'">
+        <div class="session-badge">
           <span class="session-label">会话 ID</span>
-          <span class="session-id">{{ memoryId }}</span>
+          <span class="session-id">{{ mode === 'memory' ? memoryId : routeConversationId }}</span>
         </div>
         <button class="new-chat-btn" @click="newChat" title="新建会话">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -185,6 +185,7 @@ import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 // --- State ---
 const memoryId = ref(generateMemoryId())
+const routeConversationId = ref(generateConversationId())
 const messages = ref([])
 const inputText = ref('')
 const isStreaming = ref(false)
@@ -216,6 +217,10 @@ const currentQuickPrompts = computed(() =>
 // --- Helpers ---
 function generateMemoryId() {
   return Math.floor(100000 + Math.random() * 900000)
+}
+
+function generateConversationId() {
+  return 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8)
 }
 
 function getNowTime() {
@@ -283,6 +288,8 @@ function switchMode(newMode) {
   resetInputHeight()
   if (newMode === 'memory') {
     memoryId.value = generateMemoryId()
+  } else {
+    routeConversationId.value = generateConversationId()
   }
 }
 
@@ -290,7 +297,11 @@ function newChat() {
   if (isStreaming.value) {
     stopStream()
   }
-  memoryId.value = generateMemoryId()
+  if (mode.value === 'memory') {
+    memoryId.value = generateMemoryId()
+  } else {
+    routeConversationId.value = generateConversationId()
+  }
   messages.value = []
   inputText.value = ''
   resetInputHeight()
@@ -345,7 +356,7 @@ function sendMessage() {
 
   const url = mode.value === 'memory'
     ? `/api/ai/chat?memoryId=${encodeURIComponent(memoryId.value)}&message=${encodeURIComponent(text)}`
-    : `/api/ai/route?content=${encodeURIComponent(text)}`
+    : `/api/ai/route?content=${encodeURIComponent(text)}&conversationId=${encodeURIComponent(routeConversationId.value)}`
 
   const eventSource = new EventSource(url)
   currentEventSource = eventSource

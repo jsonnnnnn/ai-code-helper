@@ -11,6 +11,6 @@ public interface TextProcessorService {
     String processText(@V("text") String text);
 
     @SystemMessage(fromResource = "system-prompt.txt")
-    @UserMessage("请对以下文本进行处理，包括摘要和关键词提取：\n{{text}}")
+    @UserMessage("{{text}}")
     Flux<String> processTextStream(@V("text") String text);
 }

@@ -4,6 +4,7 @@ import com.example.aicodehelper.ai.context.ContentProcessingContext;
 import com.example.aicodehelper.ai.context.ContentType;
 import com.example.aicodehelper.ai.routeChain.classifier.ContentTypeClassifier;
 import com.example.aicodehelper.ai.routeChain.processor.ContentProcessor;
+import com.example.aicodehelper.ai.routeChain.processor.CodeContentProcessor;
 import com.example.aicodehelper.ai.routeChain.processor.DefaultContentProcessor;
 import com.example.aicodehelper.ai.routeChain.processor.TextContentProcessor;
 import jakarta.annotation.PostConstruct;
@@ -25,6 +26,9 @@ public class ContentRoutingChain {
     private TextContentProcessor textContentProcessor;
 
     @Resource
+    private CodeContentProcessor codeContentProcessor;
+
+    @Resource
     private DefaultContentProcessor defaultContentProcessor;
 
     private Map<ContentType, ContentProcessor> processors;
@@ -33,26 +37,22 @@ public class ContentRoutingChain {
     public void init() {
         processors = new HashMap<>();
         processors.put(ContentType.TEXT, textContentProcessor);
-//        processors.put(ContentType.CODE, new CodeContentProcessor());
+        processors.put(ContentType.CODE, codeContentProcessor);
 //        processors.put(ContentType.URL, new UrlContentProcessor());
     }
 
-    public String processContent(String content) {
-        ContentProcessingContext context = new ContentProcessingContext(content);
+    public String processContent(String content, String conversationId) {
+        ContentProcessingContext context = new ContentProcessingContext(content, conversationId);
 
         try {
             System.out.println("正在识别内容类型...");
-            //调用分类服务
+            
             ContentType contentType = classifier.classifyContent(content);
-            //补充上下文
             context.setContentType(contentType);
             System.out.println("识别结果：" + contentType);
 
-
-            //调用处理服务
             ContentProcessor processor = processors.getOrDefault(contentType, defaultContentProcessor);
             System.out.println("选择处理器：" + processor.getProcessorName());
-            //补充上下文
             context = processor.process(context);
 
         } catch (Exception e) {
@@ -63,8 +63,8 @@ public class ContentRoutingChain {
         return context.getFinalOutput();
     }
 
-    public Flux<String> processContentStream(String content) {
-        ContentProcessingContext context = new ContentProcessingContext(content);
+    public Flux<String> processContentStream(String content, String conversationId) {
+        ContentProcessingContext context = new ContentProcessingContext(content, conversationId);
         try {
             System.out.println("正在识别内容类型（流式）...");
             ContentType contentType = classifier.classifyContent(content);

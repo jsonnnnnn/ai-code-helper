@@ -2,7 +2,6 @@ package com.example.aicodehelper.ai.controller;
 
 
 import com.example.aicodehelper.ai.AICodeHelperService;
-import com.example.aicodehelper.ai.context.ContentProcessingContext;
 import com.example.aicodehelper.ai.routeChain.ContentRoutingChain;
 import jakarta.annotation.Resource;
 import org.springframework.http.codec.ServerSentEvent;
@@ -10,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/ai")
@@ -30,8 +31,12 @@ public class AIController {
     }
 
     @GetMapping(value = "/route", produces = "text/event-stream")
-    public Flux<ServerSentEvent<String>> route(String content) {
-        return contentRoutingChain.processContentStream(content)
+    public Flux<ServerSentEvent<String>> route(String content, String conversationId) {
+        // 前端未传 conversationId 时自动生成，代表一次新的独立对话
+        String resolvedId = (conversationId != null && !conversationId.isBlank())
+                ? conversationId
+                : UUID.randomUUID().toString();
+        return contentRoutingChain.processContentStream(content, resolvedId)
                 .map(chunk -> ServerSentEvent.<String>builder()
                         .data(chunk)
                         .build());
