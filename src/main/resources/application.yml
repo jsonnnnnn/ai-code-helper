@@ -3,10 +3,28 @@ spring:
     name: ai-code-helper
   profiles:
     active: local
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: postgres
+    password: a1471354978
+    driver-class-name: org.postgresql.Driver
+
 server:
   port: 8081
   servlet:
     context-path: /api
+
+app:
+  rag:
+    enabled: true
+    # 是否强制重新向量化写入 pgvector（true=清表重写，false=复用已有数据）
+    # 文档首次写入或内容有变更时设为 true，平时保持 false 避免重复写入
+    reingest: false
+    pgvector:
+      table: langchain4j_embeddings
+      # text-embedding-v3 默认输出维度为 1024
+      dimension: 1024
+
 langchain4j:
   community:
     dashscope:
@@ -22,6 +40,8 @@ langchain4j:
 
 bigmodel:
   api-key:  5b56e97f971e48febccf854970420508.piTrjQEz8AKJyOgy
+
+
 
 
 

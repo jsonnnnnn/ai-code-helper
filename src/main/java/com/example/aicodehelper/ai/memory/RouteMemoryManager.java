@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 路由模式下的对话记忆管理器。
  * 每个 conversationId 对应一个独立的 ChatMemory 实例，
  * 同一对话内的所有内容处理器通过同一个 conversationId 共享该记忆。
+ * 注意这是短期记忆！！！！！！！！！！！！！！！！
  */
 @Component
 public class RouteMemoryManager {

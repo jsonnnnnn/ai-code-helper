@@ -14,16 +14,19 @@ import org.springframework.context.annotation.Configuration;
 public class McpConfig {
 
     @Value("${bigmodel.api-key}")
-    private String apiKey;
+    private String apiKeyForBigModel;
+    private String apiKeyForContext7="ctx7sk-9a7ca8f1-2de4-47b4-b27a-81f5096dadb5";
 
     @Bean
     public McpToolProvider mcpToolProvider() {
         // 和 MCP 服务通讯
         McpTransport transport = new HttpMcpTransport.Builder()
-                .sseUrl("https://open.bigmodel.cn/api/mcp/web_search/sse?Authorization=" + apiKey)
+                .sseUrl("https://open.bigmodel.cn/api/mcp/web_search/sse?Authorization=" + apiKeyForBigModel)
                 .logRequests(true) // 开启日志，查看更多信息
                 .logResponses(true)
                 .build();
+
+
         // 创建 MCP 客户端
         McpClient mcpClient = new DefaultMcpClient.Builder()
                 .key("yupiMcpClient")
