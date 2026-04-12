@@ -17,13 +17,21 @@ server:
 app:
   rag:
     enabled: true
-    # 是否强制重新向量化写入 pgvector（true=清表重写，false=复用已有数据）
-    # 文档首次写入或内容有变更时设为 true，平时保持 false 避免重复写入
-    reingest: false
+    # 是否强制重建全部索引（pgvector + parent表 + BM25表）
+    # 文档首次写入或内容有变更时设为 true ，平时保持 false
+    reingest: true
     pgvector:
       table: langchain4j_embeddings
       # text-embedding-v3 默认输出维度为 1024
       dimension: 1024
+    retrieval:
+      top-child-results: 20       # 向量 / BM25 各自召回的 child 数量
+      reranker-candidates: 20     # 送入 cross-encoder 的 parent 候选数
+      top-parent-results: 10      # 最终返回给 LLM 的 parent 数量
+      min-child-score: 0.3        # 向量相似度过滤阈值
+      vector-weight: 0.6          # 联合分中向量权重（BM25 权重 = 1 - 此值）
+    cross-encoder:
+      model: gte-rerank-v2           # DashScope rerank 模型（gte-rerank / gte-rerank-v2）
 
 langchain4j:
   community:
